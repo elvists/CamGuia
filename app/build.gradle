@@ -26,5 +26,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.ibm.watson.developer_cloud:android-sdk:0.2.3'
+    compile 'com.ibm.watson.developer_cloud:java-sdk:3.5.3'
     testCompile 'junit:junit:4.12'
 }
