@@ -1,8 +1,10 @@
 package solutis.hackathon.com.br.camguia;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
@@ -21,6 +23,13 @@ public class MainActivity extends AppCompatActivity {
 
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, CAMERA_REQUEST);
+
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                1);
+
+        new VisualRecognitionService().execute("");
+
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
