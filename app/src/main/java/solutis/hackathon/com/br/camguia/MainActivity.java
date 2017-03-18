@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File storageDir = getExternalCacheDir();
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -86,4 +86,6 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
+
+
 }
