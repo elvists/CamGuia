@@ -36,7 +36,7 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
 
             System.out.println("Classify an image");
             File file = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS), "IMG_20170311_223254073.jpg");
+                    Environment.DIRECTORY_DOWNLOADS), "IMG_20170317_204922794.jpg");
             ClassifyImagesOptions options = new ClassifyImagesOptions.Builder()
                     .images(file)
                     .build();
@@ -60,10 +60,15 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
             extractMaxOdds(imageClassifications, maxScore, maxOdds);
         }
 
-        String text = "";
+        String text = "CamGuia sees ";
+        if (maxScore < 0.9D) {
+            text = "It might be ";
+        }
         for (VisualClassifier.VisualClass visualClass : maxOdds) {
             Double score = Double.valueOf(String.format(Locale.US, "%.2f", visualClass.getScore()));
-            text += "There are " + (score * 100D) + "% chances of being a " + visualClass.getName() + ". ";
+            if (!visualClass.getName().contains("color")) {
+                text += "a " + visualClass.getName() + ", ";
+            }
         }
 
         return text;
