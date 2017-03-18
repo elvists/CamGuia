@@ -12,8 +12,11 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements VisualRecognitionServiceResult{
 
@@ -28,9 +31,8 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraIntent.putExtra("android.intent.extra.quickCapture", true);
-      //  cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, "teste");
         startActivityForResult(cameraIntent, CAMERA_REQUEST);
 
         ActivityCompat.requestPermissions(this,
@@ -44,33 +46,28 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
-            MediaStore.Images.Media.insertImage(getContentResolver(), photo, "teste" , "teste desc");
+
+            photo = Bitmap.createScaledBitmap(photo, photo.getWidth()/2, photo.getHeight()/2, false);
+
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            photo.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
+            File f = new File(Environment.getExternalStorageDirectory()
+                    + File.separator + "Imagename.jpg");
+            try {
+
+
+                f.createNewFile();
+                FileOutputStream fo = new FileOutputStream(f);
+                fo.write(bytes.toByteArray());
+                fo.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            MediaStore.Images.Media.insertImage(getContentResolver(), photo, "teste", null);
             this.imageView = (ImageView)this.findViewById(R.id.imageView1);
             imageView.setImageBitmap(photo);
-            createDirectoryAndSaveFile(photo, "manga");
-        }
-    }
-
-    private void createDirectoryAndSaveFile(Bitmap imageToSave, String fileName) {
-
-        File direct = new File(Environment.getExternalStorageDirectory() + "/DirName");
-
-        if (!direct.exists()) {
-            File wallpaperDirectory = new File("/sdcard/DirName/");
-            wallpaperDirectory.mkdirs();
-        }
-
-        File file = new File(new File("/sdcard/DirName/"), fileName);
-        if (file.exists()) {
-            file.delete();
-        }
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            imageToSave.compress(Bitmap.CompressFormat.JPEG, 1, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
