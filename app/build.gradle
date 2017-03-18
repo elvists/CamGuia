@@ -28,6 +28,5 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.ibm.watson.developer_cloud:android-sdk:0.2.3'
     compile 'com.ibm.watson.developer_cloud:java-sdk:3.5.3'
-    compile 'net.bozho.easycamera:easycamera:0.0.1:aar@aar'
     testCompile 'junit:junit:4.12'
 }
