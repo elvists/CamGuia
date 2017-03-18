@@ -24,7 +24,7 @@ public class TextToSpeechService extends AsyncTask<String, Void, String> {
         service.setUsernameAndPassword("f4696abd-97b7-4018-918d-bd44bbb13e37", "VCREA3ElTGms");
 
         try {
-            String text = "Text to speech test";
+            String text = params[0];
             InputStream stream = service.synthesize(text, Voice.EN_ALLISON,
                     AudioFormat.WAV).execute();
             InputStream in = WaveUtils.reWriteWaveHeader(stream);

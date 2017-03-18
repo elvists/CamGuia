@@ -36,12 +36,12 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
 
             System.out.println("Classify an image");
             File file = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS), "imagem-2019.jpg");
+                    Environment.DIRECTORY_DOWNLOADS), "IMG_20170311_223254073.jpg");
             ClassifyImagesOptions options = new ClassifyImagesOptions.Builder()
                     .images(file)
                     .build();
             VisualClassification result = service.classify(options).execute();
-            System.out.println(result);
+            //System.out.println(result);
             text = findClassesMaxScore(result);
         }
         catch (Exception e) {

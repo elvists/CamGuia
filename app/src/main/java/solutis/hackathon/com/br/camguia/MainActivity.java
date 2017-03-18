@@ -39,8 +39,6 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
 
         visualRecognitionService.setVisualRecognitionServiceResult(this);
         visualRecognitionService.execute();
-
-        textToSpeechService.execute();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -79,6 +77,6 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
     @Override
     public void processFinish(String output) {
         System.out.println(output);
-
+        textToSpeechService.execute(output);
     }
 }
