@@ -19,16 +19,27 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements VisualRecognitionServiceResult, LanguageTranslatorServiceResult{
 
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
+    String mCurrentPhotoPath;
+    static final int REQUEST_TAKE_PHOTO = 1;
+
+    private VisualRecognitionService visualRecognitionService = new VisualRecognitionService();
+    private TextToSpeechService textToSpeechService = new TextToSpeechService();
+    private LanguageTranslatorService languageTranslatorService = new LanguageTranslatorService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                1);
 
 
         //new VisualRecognitionService().execute("");
@@ -48,20 +59,55 @@ public class MainActivity extends AppCompatActivity {
             File f = new File(Environment.getExternalStorageDirectory()
                     + File.separator + "Imagename.jpg");
             try {
-
-
-                f.createNewFile();
-                FileOutputStream fo = new FileOutputStream(f);
-                fo.write(bytes.toByteArray());
-                fo.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "solutis.hackathon.com.br.fileprovider",
+                        photoFile);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(cameraIntent, REQUEST_TAKE_PHOTO);
             }
 
 
-            MediaStore.Images.Media.insertImage(getContentResolver(), photo, "teste", null);
-            this.imageView = (ImageView)this.findViewById(R.id.imageView1);
-            imageView.setImageBitmap(photo);
+            visualRecognitionService.setVisualRecognitionServiceResult(this);
+            visualRecognitionService.execute();
         }
     }
+
+
+
+    @Override
+    public void processFinish(String output) {
+        System.out.println(output);
+        languageTranslatorService.setLanguageTranslatorServiceResult(this);
+        languageTranslatorService.execute(output);
+    }
+
+    @Override
+    public void processFinishTranslator(String output) {
+        System.out.println(output);
+        textToSpeechService.execute(output);
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalCacheDir();
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
 }
