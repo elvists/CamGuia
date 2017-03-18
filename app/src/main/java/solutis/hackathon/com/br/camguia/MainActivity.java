@@ -22,13 +22,14 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements VisualRecognitionServiceResult{
+public class MainActivity extends AppCompatActivity implements VisualRecognitionServiceResult, LanguageTranslatorServiceResult{
 
     String mCurrentPhotoPath;
     static final int REQUEST_TAKE_PHOTO = 1;
 
     private VisualRecognitionService visualRecognitionService = new VisualRecognitionService();
     private TextToSpeechService textToSpeechService = new TextToSpeechService();
+    private LanguageTranslatorService languageTranslatorService = new LanguageTranslatorService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +68,13 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
 
     @Override
     public void processFinish(String output) {
+        System.out.println(output);
+        languageTranslatorService.setLanguageTranslatorServiceResult(this);
+        languageTranslatorService.execute(output);
+    }
+
+    @Override
+    public void processFinishTranslator(String output) {
         System.out.println(output);
         textToSpeechService.execute(output);
     }
