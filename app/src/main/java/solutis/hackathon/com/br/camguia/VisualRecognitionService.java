@@ -36,12 +36,12 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
 
             System.out.println("Classify an image");
             File file = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS), "IMG_20170317_204922794.jpg");
+                    Environment.DIRECTORY_DOWNLOADS), "IMG_20170317_225855777.jpg");
             ClassifyImagesOptions options = new ClassifyImagesOptions.Builder()
                     .images(file)
                     .build();
             VisualClassification result = service.classify(options).execute();
-            //System.out.println(result);
+            System.out.println(result);
             text = findClassesMaxScore(result);
         }
         catch (Exception e) {
@@ -52,23 +52,19 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
 
     private String findClassesMaxScore(VisualClassification result) {
         List<ImageClassification> imageClassifications = result.getImages();
-        Double maxScore = 0.9D;
+        Double maxScore = 0D;
         List<VisualClassifier.VisualClass> maxOdds = new ArrayList<VisualClassifier.VisualClass>();
         maxScore = extractMaxOdds(imageClassifications, maxScore, maxOdds);
 
         if (maxOdds.isEmpty()) {
             extractMaxOdds(imageClassifications, maxScore, maxOdds);
         }
-
         String text = "CamGuia sees ";
         if (maxScore < 0.9D) {
             text = "It might be ";
         }
         for (VisualClassifier.VisualClass visualClass : maxOdds) {
-            Double score = Double.valueOf(String.format(Locale.US, "%.2f", visualClass.getScore()));
-            if (!visualClass.getName().contains("color")) {
-                text += "a " + visualClass.getName() + ", ";
-            }
+            text += "a " + visualClass.getName() + ", ";
         }
 
         return text;
@@ -80,10 +76,18 @@ public class VisualRecognitionService extends AsyncTask<String, Void, String> {
             List<VisualClassifier> visualClassifiers = imageClassification.getClassifiers();
             for (VisualClassifier visualClassifier : visualClassifiers) {
                 List<VisualClassifier.VisualClass>  visualClasses = visualClassifier.getClasses();
+                boolean hasMaxScore = maxScore > 0D;
                 for (VisualClassifier.VisualClass visualClass : visualClasses) {
-                    maxScore = visualClass.getScore() > maxScore ? visualClass.getScore() : maxScore;
-                    if (visualClass.getScore() >= validScore) {
+                    if (hasMaxScore && visualClass.getScore().equals(maxScore)) {
                         maxOdds.add(visualClass);
+                    } else {
+                        maxScore = visualClass.getScore() > maxScore ? visualClass.getScore() : maxScore;
+                        if (visualClass.getTypeHierarchy() != null
+                                && !visualClass.getName().contains("color")
+                                && !visualClass.getName().equals("machine")
+                                && !visualClass.getName().equals("device")) {
+                            maxOdds.add(visualClass);
+                        }
                     }
                 }
             }
