@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
@@ -17,12 +19,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements VisualRecognitionServiceResult{
 
-    private static final int CAMERA_REQUEST = 1888;
-    private ImageView imageView;
-    private TextView textView;
+    String mCurrentPhotoPath;
+    static final int REQUEST_TAKE_PHOTO = 1;
+
     private VisualRecognitionService visualRecognitionService = new VisualRecognitionService();
     private TextToSpeechService textToSpeechService = new TextToSpeechService();
 
@@ -30,50 +34,56 @@ public class MainActivity extends AppCompatActivity implements VisualRecognition
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra("android.intent.extra.quickCapture", true);
-        startActivityForResult(cameraIntent, CAMERA_REQUEST);
-
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                 1);
 
-        visualRecognitionService.setVisualRecognitionServiceResult(this);
-        visualRecognitionService.execute();
-    }
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-
-            photo = Bitmap.createScaledBitmap(photo, photo.getWidth()/2, photo.getHeight()/2, false);
-
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            photo.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
-            File f = new File(Environment.getExternalStorageDirectory()
-                    + File.separator + "Imagename.jpg");
+        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
             try {
-
-
-                f.createNewFile();
-                FileOutputStream fo = new FileOutputStream(f);
-                fo.write(bytes.toByteArray());
-                fo.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "solutis.hackathon.com.br.fileprovider",
+                        photoFile);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(cameraIntent, REQUEST_TAKE_PHOTO);
             }
 
 
-            MediaStore.Images.Media.insertImage(getContentResolver(), photo, "teste", null);
-            this.imageView = (ImageView)this.findViewById(R.id.imageView1);
-            imageView.setImageBitmap(photo);
+            visualRecognitionService.setVisualRecognitionServiceResult(this);
+            visualRecognitionService.execute();
         }
     }
+
+
 
     @Override
     public void processFinish(String output) {
         System.out.println(output);
         textToSpeechService.execute(output);
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 }
